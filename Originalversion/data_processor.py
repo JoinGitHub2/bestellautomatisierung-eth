@@ -90,6 +90,20 @@ class DataProcessor:
                         for original, replacement in self.sonderzeichen.items():
                             value = value.replace(original, replacement)
 
+                        # Bindestriche in ISBN und .0 am Ende des Wertes entfernen
+                        if column_title == "020$a":
+                            value = value.replace('-', '')  # Bindestriche entfernen
+                            value = value.split('.')[0]  # Entfernt '.0' am Ende des Wertes
+
+                        # Artikel werden in <<>>-Klammern gesetzt. Die Artikel befinden sich im Articles-Mapping. 
+                        if column_title == "24510$a":
+                            title = str(value)
+                            for article, formatted_article in self.articles.items():
+                                if title.lower().startswith(article + ' '):
+                                    title = formatted_article + ' ' + title[len(article) + 1:]
+                                    break
+                            value = title
+
                         # Wenn der Wert leer ist, den Standardwert setzen
                         value_to_set = value if value else self.default_values.get(column_title, '')
 
@@ -102,7 +116,7 @@ class DataProcessor:
                     self._process_949x(ws, start_row)
                     self._process_949d(ws, start_row)
                     self._process_949v(ws, start_row)
-                    self._process_905c(ws, start_row)  # Hinzugefügt: Mapping 905$c anwenden
+                    self._process_905c(ws, start_row)
 
                     start_row += 1
 
